@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Created with Liquid XML Studio 1.0.7.0 (http://www.liquid-technologies.com) -->
+<xs:schema xmlns:fm="http://www.fixprotocol.org/FIXML-5-0/METADATA" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.fixprotocol.org/FIXML-5-0" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.fixprotocol.org/FIXML-5-0" elementFormDefault="qualified" attributeFormDefault="unqualified" xsi:schemaLocation="http://www.fixprotocol.org/FIXML-5-0/METADATA fixml-metadata-5-0.xsd">
+	<xs:redefine schemaLocation="fixml-marketdata-base-5-0.xsd">
+		<xs:attributeGroup name="MDFullGrpAttributes">
+			<xs:attributeGroup ref="MDFullGrpAttributes"/>
+			<xs:attribute name="Volatility" type="xs:float" use="optional"/>
+			<xs:attribute name="YieldPx" type="xs:float" use="optional"/>
+			<xs:attribute name="YieldLow" type="xs:float" use="optional"/>
+			<xs:attribute name="YieldHigh" type="xs:float" use="optional"/>
+			<xs:attribute name="Depth" type="xs:float" use="optional"/>
+			<xs:attribute name="Balance" type="xs:float" use="optional"/>
+			<xs:attribute name="AutoPx" type="xs:float" use="optional"/>
+			<xs:attribute name="ManPx" type="xs:float" use="optional"/>
+			<xs:attribute name="Shrd" type="xs:string" use="optional"/>
+			<xs:attribute name="LvlPx" type="xs:float" use="optional"/>
+			<xs:attribute name="LvlLength" type="xs:float" use="optional"/>
+			<xs:attribute name="OpenPx" type="xs:float" use="optional"/>
+			<xs:attribute name="ClosePx" type="xs:float" use="optional"/>
+			<xs:attribute name="LastPx" type="xs:float" use="optional"/>
+			<xs:attribute name="LastQty" type="xs:float" use="optional"/>
+			<xs:attribute name="PrevDt" type="xs:string" use="optional"/>
+			<xs:attribute name="TrdQty" type="xs:float" use="optional"/>
+			<xs:attribute name="BkngRefID" type="BookingRefID_t" use="optional"/>
+			<xs:attribute name="ClOrdID" type="ClOrdID_t" use="optional"/>
+			<xs:attribute name="RefID" type="MDEntryRefID_t" use="optional"/>
+			<xs:attribute name="ClosingPrice" type="xs:float" use="optional"/>
+			<xs:attribute name="EntryStep" type="xs:string" use="optional"/>
+			<xs:attribute name="MDEntryLevel" type="xs:long" use="optional"/>
+			<xs:attribute name="MDEntryDepth" type="xs:long" use="optional"/>
+			<xs:attribute name="TradeID" type="xs:string" use="optional"/>
+		</xs:attributeGroup>
+		<xs:group name="MarketDataSnapshotFullRefreshElements">
+			<xs:sequence>
+				<xs:group ref="MarketDataSnapshotFullRefreshElements"/>
+				<xs:element name="CusAttr" type="CustomAttrs" minOccurs="0"/>
+				<xs:element name="Info" type="Info_Block_t" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:group>
+		<xs:attributeGroup name="MarketDataSnapshotFullRefreshAttributes">
+			<xs:attributeGroup ref="MarketDataSnapshotFullRefreshAttributes"/>
+			<xs:attribute name="Txt" type="xs:string" use="optional"/>
+		</xs:attributeGroup>
+		<xs:group name="MDFullGrpElements">
+			<xs:sequence>
+				<xs:group ref="MDFullGrpElements"/>
+				<xs:element name="NoSides" type="NoSides_Block_t" minOccurs="0"/>
+				<xs:element name="Info" type="Info_Block_t" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:group>
+		<xs:group name="MarketDataIncrementalRefreshElements">
+			<xs:sequence>
+				<xs:group ref="MarketDataIncrementalRefreshElements"/>
+				<xs:element name="Info" type="Info_Block_t" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:group>
+		<xs:attributeGroup name="MDIncGrpAttributes">
+			<xs:attributeGroup ref="MDIncGrpAttributes"/>
+			<xs:attribute name="BkngRefID" type="BookingRefID_t" use="optional"/>
+			<xs:attribute name="ClOrdID" type="ClOrdID_t" use="optional"/>
+			<xs:attribute name="ClosingPrice" type="xs:float" use="optional"/>
+			<xs:attribute name="EntryStep" type="xs:string" use="optional"/>
+			<xs:attribute name="MDEntryLevel" type="xs:long" use="optional"/>
+			<xs:attribute name="MDEntryDepth" type="xs:long" use="optional"/>
+			<xs:attribute name="TradeID" type="xs:string" use="optional"/>
+		</xs:attributeGroup>
+		<xs:group name="MDIncGrpElements">
+			<xs:sequence>
+				<xs:group ref="MDIncGrpElements"/>
+				<xs:element name="NoSides" type="NoSides_Block_t" minOccurs="0"/>
+			</xs:sequence>
+		</xs:group>
+		<xs:attributeGroup name="MDReqGrpAttributes">
+			<xs:attributeGroup ref="MDReqGrpAttributes"/>
+			<xs:attribute name="BkngRefID" type="BookingRefID_t" use="optional"/>
+		</xs:attributeGroup>
+	</xs:redefine>
+	<xs:group name="MarketDataRequestElements">
+		<xs:sequence>
+			<xs:element name="Pty" type="Parties_Block_t" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Req" type="MDReqGrp_Block_t" maxOccurs="unbounded"/>
+			<xs:element name="InstReq" type="InstrmtMDReqGrp_Block_t" maxOccurs="unbounded"/>
+			<xs:element name="TrdSes" type="TrdgSesGrp_Block_t" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Info" type="Info_Block_t" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:group>
+	<xs:attributeGroup name="MarketDataRequestAttributes">
+		<xs:attribute name="ReqID" type="MDReqID_t" use="required"/>
+		<xs:attribute name="SubReqTyp" type="SubscriptionRequestType_t" use="required"/>
+		<xs:attribute name="MktDepth" type="MarketDepth_t" use="required"/>
+		<xs:attribute name="UpdtTyp" type="MDUpdateType_t" use="optional"/>
+		<xs:attribute name="AggBook" type="AggregatedBook_t" use="optional"/>
+		<xs:attribute name="OpenClsSettlFlag" type="OpenCloseSettlFlag_t" use="optional"/>
+		<xs:attribute name="Scope" type="Scope_t" use="optional"/>
+		<xs:attribute name="ImplctDel" type="MDImplicitDelete_t" use="optional"/>
+		<xs:attribute name="ApplQuActn" type="ApplQueueAction_t" use="optional"/>
+		<xs:attribute name="ApplQuMax" type="ApplQueueMax_t" use="optional"/>
+		<xs:attribute name="MDQteTyp" type="MDQuoteType_t" use="optional"/>
+	</xs:attributeGroup>
+	<xs:complexType name="MarketDataRequest_message_t" final="#all">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">MarketDataRequest can be found in Volume3 of the specification </xs:documentation>
+			<xs:appinfo>
+				<fm:Xref Protocol="FIX" name="MarketDataRequest" ComponentType="Message" MsgID="29" Section="Pre Trade" Category="MarketData"/>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="Abstract_message_t">
+				<xs:sequence>
+					<xs:group ref="MarketDataRequestElements"/>
+				</xs:sequence>
+				<xs:attributeGroup ref="MarketDataRequestAttributes"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="MktDataReq" type="MarketDataRequest_message_t" substitutionGroup="Message" final="#all"/>
+	<xs:complexType name="CustomAttrs">
+		<xs:attribute name="FutCount" type="xs:long" use="optional"/>
+		<xs:attribute name="EqCount" type="xs:long" use="optional"/>
+	</xs:complexType>
+</xs:schema>

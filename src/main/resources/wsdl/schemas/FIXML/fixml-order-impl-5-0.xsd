@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    FIXML 5.0
+    Copyright 2003-2007 FIX Protocol Limited.  All rights reserved.
+
+    This Schema represents FIXML vocabulary based on version 5.0 of the FIX Protocol
+
+    Comments should be posted on the FIX protocol web-site at www.fixprotocol.org
+
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://www.fixprotocol.org/FIXML-5-0" xmlns:fm="http://www.fixprotocol.org/FIXML-5-0/METADATA" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" targetNamespace="http://www.fixprotocol.org/FIXML-5-0" elementFormDefault="qualified" attributeFormDefault="unqualified" xsi:schemaLocation="http://www.fixprotocol.org/FIXML-5-0/METADATA fixml-metadata-5-0.xsd">
+	<xs:redefine schemaLocation="fixml-order-base-5-0.xsd">
+		<xs:group name="NewOrderSingleElements">
+			<xs:sequence>
+				<xs:group ref="NewOrderSingleElements"/>
+				<xs:element name="Collateral" type="Collateral_Block_t" minOccurs="0"/>
+				<xs:element name="NEData" type="NonStandardFixedIncome_Block_t" minOccurs="0"/>
+				<xs:element name="Info" type="Info_Block_t" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:group>
+<!-- Inicio // Se incluye el elemento Info dentro del mensaje OrderCancelReplaceRequest -->
+		<xs:group name="OrderCancelReplaceRequestElements">
+			<xs:sequence>
+				<xs:group ref="OrderCancelReplaceRequestElements"/>
+				<xs:element name="Info" type="Info_Block_t" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:group>
+<!-- Fin // Se incluye el elemento Info dentro del mensaje OrderCancelReplaceRequest -->
+		<xs:group name="ExecutionReportElements">
+			<xs:sequence>
+				<xs:group ref="ExecutionReportElements"/>
+				<xs:element name="Info" type="Info_Block_t" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:group>
+		<xs:attributeGroup name="ExecutionReportAttributes">
+			<xs:attributeGroup ref="ExecutionReportAttributes"/>
+			<xs:attribute name="RoundLotBook" type="xs:string" use="optional"/>
+			<xs:attribute name="TradeID" type="xs:string" use="optional"/>
+		</xs:attributeGroup>
+		<xs:attributeGroup name="OrderStatusRequestAttributes">
+			<xs:attributeGroup ref="OrderStatusRequestAttributes"/>
+			<xs:attribute name="Action" use="optional">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="0"/>
+						<xs:enumeration value="1"/>
+						<xs:enumeration value="2"/>
+						<xs:enumeration value="3"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:attributeGroup>
+		<xs:attributeGroup name="NewOrderSingleAttributes">
+			<xs:attributeGroup ref="NewOrderSingleAttributes"/>
+			<xs:attribute name="FundSellSrc" use="optional">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="T"/>
+						<xs:enumeration value="P"/>
+						<xs:enumeration value="R"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="MktSellTm" use="optional">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="D"/>
+						<xs:enumeration value="P"/>
+						<xs:enumeration value="F"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="FundBuySrc" use="optional">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="T"/>
+						<xs:enumeration value="P"/>
+						<xs:enumeration value="R"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="MktBuyTm" use="optional">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="D"/>
+						<xs:enumeration value="P"/>
+						<xs:enumeration value="F"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="ExpireBuyDt" type="ExpireDate_t" use="optional"/>
+			<xs:attribute name="actionOnLogoff" use="optional">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="0"/>
+						<xs:enumeration value="1"/>
+						<xs:enumeration value="2"/>
+						<xs:enumeration value="3"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="trackingTyp" use="optional">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="0"/>
+						<xs:enumeration value="1"/>
+						<xs:enumeration value="2"/>
+						<xs:enumeration value="3"/>
+						<xs:enumeration value="4"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="TrackedSecCode" type="xs:string" use="optional"/>
+			<xs:attribute name="TrackedBrdID" type="xs:string" use="optional"/>
+			<xs:attribute name="PrevId" type="xs:string" use="optional"/>
+			<xs:attribute name="PrevDate" type="xs:string" use="optional"/>
+			<xs:attribute name="PrevLinkID" type="xs:string" use="optional"/>
+			<xs:attribute name="UnmatchQty" type="xs:string" use="optional"/>
+			<xs:attribute name="TrdQty" type="xs:string" use="optional"/>
+			<xs:attribute name="MatchQty" type="xs:string" use="optional"/>
+			<xs:attribute name="MatchVal" type="xs:string" use="optional"/>
+			<xs:attribute name="avPx" type="xs:string" use="optional"/>
+			<xs:attribute name="Volatility" type="xs:string" use="optional"/>
+			<xs:attribute name="Action" use="optional">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="0"/>
+						<xs:enumeration value="1"/>
+						<xs:enumeration value="2"/>
+						<xs:enumeration value="3"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:attributeGroup>
+	</xs:redefine>
+</xs:schema>

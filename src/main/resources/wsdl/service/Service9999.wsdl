@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Created by TIBCO WSDL-->
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://www.bvc.com.co/Services/Service9999" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns="http://www.fixprotocol.org/FIXML-5-0" name="Untitled" targetNamespace="http://www.bvc.com.co/Services/Service9999">
+    <wsdl:types>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.fixprotocol.org/FIXML-5-0" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:include schemaLocation="../schemas/FIXML/fixml-components-base-5-0.xsd"/>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:service name="Service9999">
+        <wsdl:port name="portTypeEndpoint" binding="tns:portTypeEndpointBinding">
+            <soap:address location="https://busintegracion.bvc.com.co:443/Services/Service9999/Interface/Service9999.serviceagent/portTypeEndpoint"/>
+        </wsdl:port>
+    </wsdl:service>
+    <wsdl:portType name="portType">
+        <!-- <wsdl:operation name="CambioContrasenaOp">
+            <wsdl:input message="tns:UserReq3"/>
+            <wsdl:output message="tns:UserRsp3"/>
+        </wsdl:operation> -->
+        <wsdl:operation name="LogInOp">
+            <wsdl:input message="tns:UserReq"/>
+            <wsdl:output message="tns:UserRsp"/>
+        </wsdl:operation>
+        <!-- <wsdl:operation name="LogOutOp">
+            <wsdl:input message="tns:UserReq2"/>
+            <wsdl:output message="tns:UserRsp2"/>
+        </wsdl:operation> -->
+    </wsdl:portType>
+    <wsdl:binding name="portTypeEndpointBinding" type="tns:portType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+       <!--  <wsdl:operation name="CambioContrasenaOp">
+            <soap:operation style="document" soapAction="/Services/Service9999/Interface/Service9999.serviceagent/portTypeEndpoint/CambioContrasenaOp"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="parameters1"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="parameters2"/>
+            </wsdl:output>
+        </wsdl:operation> -->
+        <wsdl:operation name="LogInOp">
+            <soap:operation style="document" soapAction="/Services/Service9999/Interface/Service9999.serviceagent/portTypeEndpoint/LogInOp"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="parameters3"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="parameters4"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <!-- <wsdl:operation name="LogOutOp">
+            <soap:operation style="document" soapAction="/Services/Service9999/Interface/Service9999.serviceagent/portTypeEndpoint/LogOutOp"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="parameters5"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="parameters6"/>
+            </wsdl:output>
+        </wsdl:operation> -->
+    </wsdl:binding>
+    <!-- <wsdl:message name="UserReq3">
+        <wsdl:part name="parameters1" element="ns:UserReq"/>
+    </wsdl:message>
+    <wsdl:message name="UserRsp3">
+        <wsdl:part name="parameters2" element="ns:UserRsp"/>
+    </wsdl:message> -->
+    <wsdl:message name="UserReq">
+        <wsdl:part name="parameters3" element="ns:UserReq"/>
+    </wsdl:message>
+    <wsdl:message name="UserRsp">
+        <wsdl:part name="parameters4" element="ns:UserRsp"/>
+    </wsdl:message>
+    <!-- <wsdl:message name="UserReq2">
+        <wsdl:part name="parameters5" element="ns:UserReq"/>
+    </wsdl:message>
+    <wsdl:message name="UserRsp2">
+        <wsdl:part name="parameters6" element="ns:UserRsp"/>
+    </wsdl:message> -->
+</wsdl:definitions>

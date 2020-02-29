@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+   <SOAP-ENV:Body>
+      <ns0:FIXML xmlns:ns0="http://www.fixprotocol.org/FIXML-5-0" v="5.0" s="20071228" xr="004003-1|004003-2">
+         <ns0:Batch>
+            <ns0:MktDataFull TrdDt="2020-02-14">
+               <ns0:Hdr SID="MEC+" SSub="IB" OrigSnt="2020-02-14T09:58:24.000267" MdlMsg="INDICE_BOLSA" />
+               <ns0:Instrmt Sym="CTCP" SecTyp="PZFJ" />
+               <ns0:Full Typ="3" Px="257.8" Dt="2020-02-14" Tm="09:58:24" PxDelta="0.01" Txt="CTCP" LowPx="257.77" />
+               <ns0:Info InfoID="2.678" InfoTyp="70" />
+               <ns0:Info InfoID="4.826" InfoTyp="219" />
+            </ns0:MktDataFull>
+            <ns0:MktDataFull TrdDt="2020-02-14">
+               <ns0:Hdr SID="MEC+" SSub="IB" OrigSnt="2020-02-14T09:58:24.000268" MdlMsg="INDICE_BOLSA" />
+               <ns0:Instrmt Sym="CTES" SecTyp="PZFJ" />
+               <ns0:Full Typ="3" Px="297.01" Dt="2020-02-14" Tm="09:58:24" PxDelta="0.01" Txt="CTES" LowPx="296.98" />
+               <ns0:Info InfoID="5.141" InfoTyp="70" />
+               <ns0:Info InfoID="5.369" InfoTyp="219" />
+            </ns0:MktDataFull>
+         </ns0:Batch>
+      </ns0:FIXML>
+   </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	 xmlns="http://www.bvc.com.co/BUS"
+	 targetNamespace="http://www.bvc.com.co/BUS"
+	 elementFormDefault="qualified"
+	 attributeFormDefault="unqualified">
+	<xs:element name="firm">
+		<xs:complexType>
+			<xs:attribute name="id" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="3"/>
+						<xs:maxLength value="3"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="orderId" type="xs:string"/>
+			<xs:attribute name="reTrx" type="xs:boolean"/>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

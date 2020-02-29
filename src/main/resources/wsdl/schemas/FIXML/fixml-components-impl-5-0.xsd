@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- edited with XMLSpy v2008 (http://www.altova.com) by jestrada (CTP) -->
+<!--
+    FIXML 5.0
+    Copyright 2003-2007 FIX Protocol Limited.  All rights reserved.
+
+    This Schema represents FIXML vocabulary based on version 5.0 of the FIX Protocol
+
+    Comments should be posted on the FIX protocol web-site at www.fixprotocol.org
+
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://www.fixprotocol.org/FIXML-5-0" xmlns:fm="http://www.fixprotocol.org/FIXML-5-0/METADATA" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" targetNamespace="http://www.fixprotocol.org/FIXML-5-0" elementFormDefault="qualified" attributeFormDefault="unqualified" xsi:schemaLocation="http://www.fixprotocol.org/FIXML-5-0/METADATA fixml-metadata-5-0.xsd">
+	<xs:redefine schemaLocation="fixml-components-base-5-0.xsd">
+		<xs:attributeGroup name="BaseHeaderAttributes">
+			<xs:attributeGroup ref="BaseHeaderAttributes"/>
+			<xs:attribute name="MdlMsg" type="xs:string" use="optional"/>
+			<xs:attribute name="ErrCode" type="xs:string" use="optional"/>
+			<xs:attribute name="ErrMsg" type="xs:string" use="optional"/>
+		</xs:attributeGroup>
+		<xs:attributeGroup name="InstrumentAttributes">
+			<xs:attributeGroup ref="InstrumentAttributes"/>
+			<xs:attribute name="Board" type="xs:string" use="optional"/>
+			<xs:attribute name="Instr" type="xs:string" use="optional"/>
+		</xs:attributeGroup>
+		<xs:attributeGroup name="UnderlyingInstrumentAttributes">
+			<xs:attributeGroup ref="UnderlyingInstrumentAttributes"/>
+			<xs:attribute name="Board" type="xs:string" use="optional"/>
+			<xs:attribute name="Instr" type="xs:string" use="optional"/>
+		</xs:attributeGroup>
+		<xs:attributeGroup name="InstrumentLegAttributes">
+			<xs:attributeGroup ref="InstrumentLegAttributes"/>
+			<xs:attribute name="Board" type="xs:string" use="optional"/>
+			<xs:attribute name="Instr" type="xs:string" use="optional"/>
+		</xs:attributeGroup>
+		<xs:attributeGroup name="OrdAllocGrpAttributes">
+			<xs:attributeGroup ref="OrdAllocGrpAttributes"/>
+			<xs:attribute name="OrdDt" type="xs:date" use="optional"/>			
+		</xs:attributeGroup>
+		<xs:group name="UnderlyingInstrumentElements">
+			<xs:sequence>
+				<xs:group ref="UnderlyingInstrumentElements"/>
+				<xs:element name="Stips" type="UnderlyingStipulations_Block_t" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:group>
+		<xs:group name="AttrbGrpElements">
+			<xs:sequence>
+				<xs:group ref="AttrbGrpElements"/>
+				<xs:element name="Info" type="Info_Block_t" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:group>
+		<xs:group name="OrdAllocGrpElements">
+			<xs:sequence>
+				<xs:group ref="OrdAllocGrpElements"/>
+				<xs:element name="Info" type="Info_Block_t" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:group>
+	</xs:redefine>
+	<xs:attributeGroup name="InfoAttributes">
+		<xs:attribute name="InfoID" type="xs:string" use="optional"/>
+		<xs:attribute name="InfoTyp" type="InfoType_t" use="optional"/>
+		<xs:attribute name="InfoHour" type="UTCTimeOnly" use="optional"/>
+		<xs:attribute name="InfoDate" type="UTCDateOnly" use="optional"/>
+		<xs:attribute name="InfoDtTm" type="UTCTimestamp" use="optional"/>
+	</xs:attributeGroup>
+	<xs:complexType name="Info_Block_t">
+		<xs:attributeGroup ref="InfoAttributes"/>
+	</xs:complexType>
+	<xs:complexType name="Collateral_Block_t">
+		<xs:attribute name="CollateralQty" type="Qty" use="optional"/>
+		<xs:attribute name="CollateralRate" type="Amt" use="optional"/>
+		<xs:attribute name="CollateralEqRate" type="Amt" use="optional"/>
+	</xs:complexType>
+	<xs:complexType name="NoSides_Block_t">
+		<xs:attribute name="Side" type="xs:string" use="optional"/>
+		<xs:attribute name="EnteringFirm" type="xs:string" use="optional"/>
+		<xs:attribute name="ExecutingFirm" type="xs:string" use="optional"/>
+		<xs:attribute name="EnteringTrader" type="xs:string" use="optional"/>
+		<xs:attribute name="FundManager" type="xs:string" use="optional"/>
+	</xs:complexType>	
+	<xs:complexType name="NonStandardFixedIncome_Block_t">
+		<xs:attribute name="NSEmitionDate" type="UTCDateOnly" use="optional"/>
+		<xs:attribute name="NSEndDate" type="UTCDateOnly" use="optional"/>
+		<xs:attribute name="NSInterestPeriod" type="xs:string" use="optional"/>
+		<xs:attribute name="NSInterestMethod" type="xs:string" use="optional"/>
+		<xs:attribute name="NSReinversionPeriod" type="xs:string" use="optional"/>
+		<xs:attribute name="NSReinversionMethod" type="xs:string" use="optional"/>
+		<xs:attribute name="NSFatialRate" type="Qty" use="optional"/>
+		<xs:attribute name="NSPrice" type="Qty" use="optional"/>
+		<xs:attribute name="NSAuctionExpireTime" type="UTCTimeOnly" use="optional"/>
+	</xs:complexType>
+	<xs:complexType name="BOSiopelAttributes">
+		<xs:attribute name="tab" type="xs:string" use="optional"/>
+		<xs:attribute name="linkdOper" type="xs:string" use="optional"/>
+		<xs:attribute name="sellrOfferNum" type="xs:string" use="optional"/>
+		<xs:attribute name="buyrOfferNum" type="xs:string" use="optional"/>
+		<xs:attribute name="rateEqvInfo" type="xs:string" use="optional"/>
+		<xs:attribute name="sellrIP" type="xs:string" use="optional"/>
+		<xs:attribute name="buyrIP " type="xs:string" use="optional"/>
+	</xs:complexType>
+</xs:schema>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Created by TIBCO WSDL-->
+<wsdl:definitions xmlns:tns="http://www.bvc.com.co/Services/Service1074" xmlns:ns1="http://www.fixprotocol.org/FIXML-5-0" xmlns:ns="http://www.bvc.com.co/BUS" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" name="Untitled" targetNamespace="http://www.bvc.com.co/Services/Service1074">
+    <wsdl:types>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.bvc.com.co/BUS" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:include schemaLocation="../schemas/FirmInfo.xsd"/>
+        </xs:schema>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.fixprotocol.org/FIXML-5-0" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:include schemaLocation="../schemas/FIXML/fixml-components-impl-5-0.xsd"/>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:service name="Service1074">
+        <wsdl:port name="portTypeEndpoint" binding="tns:portTypeEndpointBinding">
+            <soap:address location="http://localhost:8074/Services/FacadeServiceCache/Service1074/Interface/Service1074.serviceagent/portTypeEndpoint"/>
+        </wsdl:port>
+    </wsdl:service>
+    <wsdl:portType name="portType">
+        <wsdl:operation name="NotificacionIndicesRFRqstOp">
+            <wsdl:input message="tns:firm"/>
+            <wsdl:output message="tns:FIXML"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="portTypeEndpointBinding" type="tns:portType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="NotificacionIndicesRFRqstOp">
+            <soap:operation style="document" soapAction="/Services/FacadeServiceCache/Service1074/Interface/Service1074.serviceagent/portTypeEndpoint/NotificacionIndicesRFRqstOp"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:message name="firm">
+        <wsdl:part name="parameters" element="ns:firm"/>
+    </wsdl:message>
+    <wsdl:message name="FIXML">
+        <wsdl:part name="parameters" element="ns1:FIXML"/>
+    </wsdl:message>
+</wsdl:definitions>
