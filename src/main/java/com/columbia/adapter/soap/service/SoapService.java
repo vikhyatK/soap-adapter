@@ -27,6 +27,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.ws.BindingProvider;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.xml.serialize.OutputFormat;
 import org.apache.xml.serialize.XMLSerializer;
 import org.slf4j.Logger;
@@ -77,12 +78,18 @@ public class SoapService {
 
 	@Value(value = "${spring.service9999.url}")
 	private String service9999EndpointURL;
+	
+	@Value(value = "${spring.service9999.wsdl}")
+	private String service9999EndpointWSDL;
 
 	@Value(value = "${spring.service1074.action}")
 	private String service1074Action;
 
 	@Value(value = "${spring.service1074.url}")
 	private String service1074EndpointURL;
+	
+	@Value(value = "${spring.fixml.marketdata.xsd}")
+	private String fixmlMarketdataXSD;
 
 	@Value(value = "${spring.user.name}")
 	private String username;
@@ -99,7 +106,7 @@ public class SoapService {
 	@Value(value = "${spring.user.reqid}")
 	private String reqId;
 
-	@Scheduled(cron = "${spring.cron.time}")
+	@Scheduled(cron = "{spring.cron.time}")
 	public void callSoapService() throws Exception {
 		LOGGER.info("Calling SOAP for orderId {} at time {}", orderId, DATE_FORMAT.format(new Date()));
 		String token = callService9999();
@@ -115,9 +122,9 @@ public class SoapService {
 	private String callService9999() {
 		URL wsdlLoc;
 		try {
-			wsdlLoc = new URL("file:" + getClass().getResource("/wsdl/service/Service9999.wsdl").getFile());
+			wsdlLoc = new URL("file:" + new File(service9999EndpointWSDL));
 			LOGGER.info(wsdlLoc.toString());
-		} catch (MalformedURLException e) {
+		} catch (IOException e) {
 			LOGGER.error("Could not find wsdl for service 9999", e);
 			return null;
 		}
@@ -223,7 +230,7 @@ public class SoapService {
 			}
 			convertToJsonAndSendToKafka(mktDataFullElement);
 		} else {
-			for(int i = 0; i < mktDataFullList.getLength(); i++) {
+			for (int i = 0; i < mktDataFullList.getLength(); i++) {
 				Element mktDataFullElement = (Element) mktDataFullList.item(i);
 				convertToJsonAndSendToKafka(mktDataFullElement);
 			}
@@ -240,7 +247,7 @@ public class SoapService {
 		NamedNodeMap fullAttributes = mktDataFullElement.getElementsByTagNameNS(NAMESPACE, "Full").item(0)
 				.getAttributes();
 		NodeList infoNodes = mktDataFullElement.getElementsByTagNameNS(NAMESPACE, "Info");
-		
+
 		Header header = new Header();
 		header.setExecTime(hdrAttributes.getNamedItem("OrigSnt").getNodeValue());
 		header.setMdlMsg(hdrAttributes.getNamedItem("MdlMsg").getNodeValue());
@@ -248,7 +255,7 @@ public class SoapService {
 		MDEntryPx first = new MDEntryPx();
 		first.setMDEntryType("8");
 		first.setMDEntryPx(Double.parseDouble(fullAttributes.getNamedItem("LowPx").getNodeValue()));
-		
+
 		MDEntryPx second = new MDEntryPx();
 		second.setMDEntryType("t");
 		second.setMDEntryPx(Double.parseDouble(fullAttributes.getNamedItem("PxDelta").getNodeValue()));
@@ -257,19 +264,19 @@ public class SoapService {
 		mktData.setSymbol(instrmtAttributes.getNamedItem("Sym").getNodeValue());
 		mktData.setLastPx(Double.parseDouble(fullAttributes.getNamedItem("Px").getNodeValue()));
 		mktData.setMDEntryPx(Arrays.asList(first, second));
-		
+
 		Info info = new Info();
-		for(int i = 0; i < 2; i++) {
+		for (int i = 0; i < 2; i++) {
 			Node infoNode = infoNodes.item(i);
 			String infoType = infoNode.getAttributes().getNamedItem("InfoTyp").getNodeValue();
 			String infoId = infoNode.getAttributes().getNamedItem("InfoID").getNodeValue();
-			if(infoType.equals("70")) {
+			if (infoType.equals("70")) {
 				info.setDuration(Double.parseDouble(infoId));
 			} else {
 				info.setTir(Double.parseDouble(infoId));
 			}
 		}
-		
+
 		MktDataDto dto = new MktDataDto();
 		dto.setHeader(header);
 		dto.setMktData(mktData);
@@ -309,8 +316,7 @@ public class SoapService {
 			factory.setNamespaceAware(true);
 
 			SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-			URL schemaUrl = new URL("file:"
-					+ this.getClass().getResource("/wsdl/schemas/FIXML/fixml-marketdata-impl-5-0.xsd").getFile());
+			URL schemaUrl = new URL("file:" + new File(fixmlMarketdataXSD));
 			Schema schema = schemaFactory.newSchema(schemaUrl);
 			factory.setSchema(schema);
 
