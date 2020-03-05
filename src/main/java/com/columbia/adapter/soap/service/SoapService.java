@@ -10,15 +10,22 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Scanner;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -27,7 +34,6 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.ws.BindingProvider;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.xml.serialize.OutputFormat;
 import org.apache.xml.serialize.XMLSerializer;
 import org.slf4j.Logger;
@@ -47,7 +53,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import com.bvc.ws.service1074.BatchT;
 import com.bvc.ws.service9999.Service9999;
 import com.bvc.ws.service9999.UserRequestMessageT;
 import com.bvc.ws.service9999.UserResponseMessageT;
@@ -106,7 +111,7 @@ public class SoapService {
 	@Value(value = "${spring.user.reqid}")
 	private String reqId;
 
-	@Scheduled(cron = "{spring.cron.time}")
+	@Scheduled(cron = "${spring.cron.time}")
 	public void callSoapService() throws Exception {
 		LOGGER.info("Calling SOAP for orderId {} at time {}", orderId, DATE_FORMAT.format(new Date()));
 		String token = callService9999();
@@ -154,7 +159,9 @@ public class SoapService {
 		String responseString = "";
 		String outputString = "";
 		URL url = new URL(service1074EndpointURL.replace("token", token));
-		HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+		setSSLContextToHttpsConnection();
+		HttpsURLConnection httpsConnection = (HttpsURLConnection) url.openConnection();
+		httpsConnection.setHostnameVerifier((arg0, arg1) -> false);
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		String xmlInput = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:SOAP-ENC=\"http://schemas.xmlsoap.org/soap/encoding/\" xmlns:ns1=\"http://www.bvc.com.co/Services/Service1074\" xmlns:ns2=\"http://www.bvc.com.co/BUS\" xmlns:ns3=\"http://www.fixprotocol.org/FIXML-5-0\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n"
 				+ "   <SOAP-ENV:Body>\r\n" + "      <ns2:firm reTrx=\"false\" orderId=\"" + getOrderIdStringFromFile()
@@ -165,20 +172,20 @@ public class SoapService {
 		bout.write(buffer);
 		byte[] b = bout.toByteArray();
 		// Set the appropriate HTTP parameters.
-		httpConn.setRequestProperty("Content-Length", String.valueOf(b.length));
-		httpConn.setRequestProperty("Content-Type", "text/xml; charset=utf-8");
-		httpConn.setRequestProperty("SOAPAction", service1074Action);
-		httpConn.setRequestMethod("POST");
-		httpConn.setDoOutput(true);
-		httpConn.setDoInput(true);
-		OutputStream out = httpConn.getOutputStream();
+		httpsConnection.setRequestProperty("Content-Length", String.valueOf(b.length));
+		httpsConnection.setRequestProperty("Content-Type", "text/xml; charset=utf-8");
+		httpsConnection.setRequestProperty("SOAPAction", service1074Action);
+		httpsConnection.setRequestMethod("POST");
+		httpsConnection.setDoOutput(true);
+		httpsConnection.setDoInput(true);
+		OutputStream out = httpsConnection.getOutputStream();
 		// Write the content of the request to the outputstream of the HTTP Connection.
 		out.write(b);
 		out.close();
 		// Ready with sending the request.
 
 		// Read the response.
-		InputStreamReader isr = new InputStreamReader(httpConn.getInputStream());
+		InputStreamReader isr = new InputStreamReader(httpsConnection.getInputStream());
 		BufferedReader in = new BufferedReader(isr);
 
 		// Write the SOAP message response to a String.
@@ -193,6 +200,15 @@ public class SoapService {
 		// Parse the String output to a org.w3c.dom.Document and be able to reach every
 		// node with the org.w3c.dom API.
 		return parseXmlFile(outputString);
+	}
+
+	private void setSSLContextToHttpsConnection() throws NoSuchAlgorithmException, KeyManagementException {
+		SSLContext sslContext = SSLContext.getInstance("SSL");
+        TrustManager[] trustAll
+                = new TrustManager[] {new TrustAllCertificates()};
+        sslContext.init(null, trustAll, new java.security.SecureRandom());
+        HttpsURLConnection
+        .setDefaultSSLSocketFactory(sslContext.getSocketFactory());
 	}
 
 	private String getOrderIdStringFromFile() {
@@ -346,4 +362,15 @@ public class SoapService {
 		}
 	}
 
+	private static class TrustAllCertificates implements X509TrustManager {
+	    public void checkClientTrusted(X509Certificate[] certs, String authType) {
+	    }
+	 
+	    public void checkServerTrusted(X509Certificate[] certs, String authType) {
+	    }
+	 
+	    public X509Certificate[] getAcceptedIssuers() {
+	        return null;
+	    }
+	}
 }
