@@ -57,7 +57,6 @@ import com.columbia.adapter.soap.dto.MktData;
 import com.columbia.adapter.soap.dto.MktDataDto;
 import com.columbia.adapter.soap.kafka.KafkaProducer;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 @RefreshScope
@@ -85,7 +84,7 @@ public class SoapService {
 
 	@Value(value = "${spring.fixml.marketdata.xsd}")
 	private String fixmlMarketdataXSD;
-	
+
 	@Value(value = "${spring.service9999.action}")
 	private String service9999Action;
 
@@ -113,24 +112,24 @@ public class SoapService {
 	@Scheduled(cron = "${spring.cron.time}")
 	public void callSoapService() throws Exception {
 		LOGGER.info("Calling SOAP for orderId {} at time {}", orderId, DATE_FORMAT.format(new Date()));
-		URL url9999 = new URL(service9999EndpointURL);
+		URL url9999 = new URL(null, service9999EndpointURL, new sun.net.www.protocol.https.Handler());
 		String xmlInput9999 = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"> <SOAP-ENV:Body>\r\n"
 				+ "<UserReq xmlns=\"http://www.fixprotocol.org/FIXML-5-0\" Password=\"" + password + "\"  RawData=\""
 				+ rawData + "\" UserReqID=\"" + reqId + "\" UserReqTyp=\"" + requestType + "\" Username=\"" + username
 				+ "\" />\r\n" + "</SOAP-ENV:Body></SOAP-ENV:Envelope>";
 		Document document9999 = callService(url9999, fixmlComponentsXSD, xmlInput9999, service9999Action);
-		
+
 		if (Objects.isNull(document9999)) {
 			LOGGER.error("Response of Service9999 is null");
 			return;
 		}
 		String token = processResults9999(document9999);
-		if(Objects.isNull(token)) {
+		if (Objects.isNull(token)) {
 			LOGGER.error("Token returned by Service9999 is null");
 			return;
 		}
-		
-		URL url1074 = new URL(service1074EndpointURL.replace("token", token));
+
+		URL url1074 = new URL(null, service1074EndpointURL.replace("token", token), new sun.net.www.protocol.https.Handler());
 		String xmlInput1074 = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:SOAP-ENC=\"http://schemas.xmlsoap.org/soap/encoding/\" xmlns:ns1=\"http://www.bvc.com.co/Services/Service1074\" xmlns:ns2=\"http://www.bvc.com.co/BUS\" xmlns:ns3=\"http://www.fixprotocol.org/FIXML-5-0\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n"
 				+ "   <SOAP-ENV:Body>\r\n" + "      <ns2:firm reTrx=\"false\" orderId=\"" + getOrderIdStringFromFile()
 				+ "\" id=\"" + firmId + "\" />\r\n" + "   </SOAP-ENV:Body>\r\n" + "</SOAP-ENV:Envelope>";
