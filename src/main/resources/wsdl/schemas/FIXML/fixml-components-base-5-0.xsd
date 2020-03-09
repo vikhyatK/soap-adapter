@@ -15,6 +15,8 @@
 
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://www.fixprotocol.org/FIXML-5-0" xmlns:fm="http://www.fixprotocol.org/FIXML-5-0/METADATA" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" targetNamespace="http://www.fixprotocol.org/FIXML-5-0" elementFormDefault="qualified" attributeFormDefault="unqualified" xsi:schemaLocation="http://www.fixprotocol.org/FIXML-5-0/METADATA fixml-metadata-5-0.xsd">
+	<xs:import namespace="http://schemas.xmlsoap.org/soap/envelope/"   
+             schemaLocation="http://schemas.xmlsoap.org/soap/envelope/"/>
 	<xs:include schemaLocation="fixml-fields-impl-5-0.xsd"/>
 	<xs:complexType name="Hop_t">
 		<xs:attribute name="ID" type="HopCompID_t" use="required"/>

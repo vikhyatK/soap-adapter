@@ -20,10 +20,8 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Scanner;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.XMLConstants;
@@ -32,7 +30,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-import javax.xml.ws.BindingProvider;
 
 import org.apache.xml.serialize.OutputFormat;
 import org.apache.xml.serialize.XMLSerializer;
@@ -53,15 +50,14 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import com.bvc.ws.service9999.Service9999;
-import com.bvc.ws.service9999.UserRequestMessageT;
-import com.bvc.ws.service9999.UserResponseMessageT;
 import com.columbia.adapter.soap.dto.Header;
 import com.columbia.adapter.soap.dto.Info;
 import com.columbia.adapter.soap.dto.MDEntryPx;
 import com.columbia.adapter.soap.dto.MktData;
 import com.columbia.adapter.soap.dto.MktDataDto;
 import com.columbia.adapter.soap.kafka.KafkaProducer;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 @RefreshScope
@@ -81,20 +77,23 @@ public class SoapService {
 	@Value(value = "${spring.firm.id}")
 	private String firmId;
 
-	@Value(value = "${spring.service9999.url}")
-	private String service9999EndpointURL;
-	
-	@Value(value = "${spring.service9999.wsdl}")
-	private String service9999EndpointWSDL;
-
 	@Value(value = "${spring.service1074.action}")
 	private String service1074Action;
 
 	@Value(value = "${spring.service1074.url}")
 	private String service1074EndpointURL;
-	
+
 	@Value(value = "${spring.fixml.marketdata.xsd}")
 	private String fixmlMarketdataXSD;
+	
+	@Value(value = "${spring.service9999.action}")
+	private String service9999Action;
+
+	@Value(value = "${spring.service9999.url}")
+	private String service9999EndpointURL;
+
+	@Value(value = "${spring.fixml.components.xsd}")
+	private String fixmlComponentsXSD;
 
 	@Value(value = "${spring.user.name}")
 	private String username;
@@ -114,58 +113,50 @@ public class SoapService {
 	@Scheduled(cron = "${spring.cron.time}")
 	public void callSoapService() throws Exception {
 		LOGGER.info("Calling SOAP for orderId {} at time {}", orderId, DATE_FORMAT.format(new Date()));
-		String token = callService9999();
-		if (Objects.isNull(token)) {
+		URL url9999 = new URL(service9999EndpointURL);
+		String xmlInput9999 = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"> <SOAP-ENV:Body>\r\n"
+				+ "<UserReq xmlns=\"http://www.fixprotocol.org/FIXML-5-0\" Password=\"" + password + "\"  RawData=\""
+				+ rawData + "\" UserReqID=\"" + reqId + "\" UserReqTyp=\"" + requestType + "\" Username=\"" + username
+				+ "\" />\r\n" + "</SOAP-ENV:Body></SOAP-ENV:Envelope>";
+		Document document9999 = callService(url9999, fixmlComponentsXSD, xmlInput9999, service9999Action);
+		
+		if (Objects.isNull(document9999)) {
+			LOGGER.error("Response of Service9999 is null");
 			return;
 		}
-		Document document = callService1074(token);
-		if (Objects.nonNull(document)) {
-			processResults(document);
+		String token = processResults9999(document9999);
+		if(Objects.isNull(token)) {
+			LOGGER.error("Token returned by Service9999 is null");
+			return;
+		}
+		
+		URL url1074 = new URL(service1074EndpointURL.replace("token", token));
+		String xmlInput1074 = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:SOAP-ENC=\"http://schemas.xmlsoap.org/soap/encoding/\" xmlns:ns1=\"http://www.bvc.com.co/Services/Service1074\" xmlns:ns2=\"http://www.bvc.com.co/BUS\" xmlns:ns3=\"http://www.fixprotocol.org/FIXML-5-0\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n"
+				+ "   <SOAP-ENV:Body>\r\n" + "      <ns2:firm reTrx=\"false\" orderId=\"" + getOrderIdStringFromFile()
+				+ "\" id=\"" + firmId + "\" />\r\n" + "   </SOAP-ENV:Body>\r\n" + "</SOAP-ENV:Envelope>";
+		Document document1074 = callService(url1074, fixmlMarketdataXSD, xmlInput1074, service1074Action);
+		if (Objects.nonNull(document1074)) {
+			processResults1074(document1074);
 		}
 	}
 
-	private String callService9999() {
-		URL wsdlLoc;
-		try {
-			wsdlLoc = new URL("file:" + new File(service9999EndpointWSDL));
-			LOGGER.info(wsdlLoc.toString());
-		} catch (IOException e) {
-			LOGGER.error("Could not find wsdl for service 9999", e);
-			return null;
-		}
-
-		Service9999 svc = new Service9999(wsdlLoc);
-		com.bvc.ws.service9999.PortType port = svc.getPortTypeEndpoint();
-		BindingProvider bp = (BindingProvider) port;
-		bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, service9999EndpointURL);
-
-		UserRequestMessageT request = createUserRequest();
-		UserResponseMessageT loginResponse = port.logInOp(request);
-		return loginResponse.getUserStatText();
+	private String processResults9999(Document document) throws JsonProcessingException {
+		NodeList userRsp = document.getElementsByTagNameNS(NAMESPACE, "UserRsp");
+		Node fixmlNode = userRsp.item(0);
+		NamedNodeMap attributes = fixmlNode.getAttributes();
+		String userStatText = attributes.getNamedItem("UserStatText").getNodeValue();
+		LOGGER.info("The token returned from Service9999 is : {}", userStatText);
+		return userStatText;
 	}
 
-	private UserRequestMessageT createUserRequest() {
-		UserRequestMessageT userRequest = new UserRequestMessageT();
-		userRequest.setUsername(username);
-		userRequest.setPassword(password);
-		userRequest.setRawData(rawData);
-		userRequest.setUserReqID(reqId);
-		userRequest.setUserReqTyp(requestType);
-		return userRequest;
-	}
-
-	private Document callService1074(String token) throws Exception {
+	private Document callService(URL url, String xsd, String xmlInput, String action) throws Exception {
 		// Code to make a webservice HTTP request
 		String responseString = "";
 		String outputString = "";
-		URL url = new URL(service1074EndpointURL.replace("token", token));
 		setSSLContextToHttpsConnection();
 		HttpsURLConnection httpsConnection = (HttpsURLConnection) url.openConnection();
-		httpsConnection.setHostnameVerifier((arg0, arg1) -> false);
+		httpsConnection.setHostnameVerifier((arg0, arg1) -> true);
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		String xmlInput = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:SOAP-ENC=\"http://schemas.xmlsoap.org/soap/encoding/\" xmlns:ns1=\"http://www.bvc.com.co/Services/Service1074\" xmlns:ns2=\"http://www.bvc.com.co/BUS\" xmlns:ns3=\"http://www.fixprotocol.org/FIXML-5-0\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n"
-				+ "   <SOAP-ENV:Body>\r\n" + "      <ns2:firm reTrx=\"false\" orderId=\"" + getOrderIdStringFromFile()
-				+ "\" id=\"" + firmId + "\" />\r\n" + "   </SOAP-ENV:Body>\r\n" + "</SOAP-ENV:Envelope>";
 
 		byte[] buffer = new byte[xmlInput.length()];
 		buffer = xmlInput.getBytes();
@@ -174,7 +165,7 @@ public class SoapService {
 		// Set the appropriate HTTP parameters.
 		httpsConnection.setRequestProperty("Content-Length", String.valueOf(b.length));
 		httpsConnection.setRequestProperty("Content-Type", "text/xml; charset=utf-8");
-		httpsConnection.setRequestProperty("SOAPAction", service1074Action);
+		httpsConnection.setRequestProperty("SOAPAction", action);
 		httpsConnection.setRequestMethod("POST");
 		httpsConnection.setDoOutput(true);
 		httpsConnection.setDoInput(true);
@@ -194,21 +185,19 @@ public class SoapService {
 		}
 
 		// Write the SOAP message formatted to the console.
-		String formattedSOAPResponse = formatXML(outputString);
+		String formattedSOAPResponse = formatXML(outputString, xsd);
 		System.out.println(formattedSOAPResponse);
 
 		// Parse the String output to a org.w3c.dom.Document and be able to reach every
 		// node with the org.w3c.dom API.
-		return parseXmlFile(outputString);
+		return parseXmlFile(outputString, xsd);
 	}
 
 	private void setSSLContextToHttpsConnection() throws NoSuchAlgorithmException, KeyManagementException {
 		SSLContext sslContext = SSLContext.getInstance("SSL");
-        TrustManager[] trustAll
-                = new TrustManager[] {new TrustAllCertificates()};
-        sslContext.init(null, trustAll, new java.security.SecureRandom());
-        HttpsURLConnection
-        .setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+		TrustManager[] trustAll = new TrustManager[] { new TrustAllCertificates() };
+		sslContext.init(null, trustAll, new java.security.SecureRandom());
+		HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
 	}
 
 	private String getOrderIdStringFromFile() {
@@ -226,7 +215,7 @@ public class SoapService {
 		return orderIdString;
 	}
 
-	private void processResults(Document document) {
+	private void processResults1074(Document document) {
 		NodeList FIXML = document.getElementsByTagNameNS(NAMESPACE, "FIXML");
 		Node fixmlNode = FIXML.item(0);
 		NamedNodeMap attributes = fixmlNode.getAttributes();
@@ -309,9 +298,9 @@ public class SoapService {
 		}
 	}
 
-	public String formatXML(String unformattedXml) throws Exception {
+	public String formatXML(String unformattedXml, String xsd) throws Exception {
 		try {
-			Document document = parseXmlFile(unformattedXml);
+			Document document = parseXmlFile(unformattedXml, xsd);
 			OutputFormat format = new OutputFormat(document);
 			format.setIndenting(true);
 			format.setIndent(3);
@@ -325,14 +314,14 @@ public class SoapService {
 		}
 	}
 
-	private Document parseXmlFile(String in) throws Exception {
+	private Document parseXmlFile(String in, String xsd) throws Exception {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setValidating(false);
 			factory.setNamespaceAware(true);
 
 			SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-			URL schemaUrl = new URL("file:" + new File(fixmlMarketdataXSD));
+			URL schemaUrl = new URL("file:" + new File(xsd));
 			Schema schema = schemaFactory.newSchema(schemaUrl);
 			factory.setSchema(schema);
 
@@ -363,14 +352,14 @@ public class SoapService {
 	}
 
 	private static class TrustAllCertificates implements X509TrustManager {
-	    public void checkClientTrusted(X509Certificate[] certs, String authType) {
-	    }
-	 
-	    public void checkServerTrusted(X509Certificate[] certs, String authType) {
-	    }
-	 
-	    public X509Certificate[] getAcceptedIssuers() {
-	        return null;
-	    }
+		public void checkClientTrusted(X509Certificate[] certs, String authType) {
+		}
+
+		public void checkServerTrusted(X509Certificate[] certs, String authType) {
+		}
+
+		public X509Certificate[] getAcceptedIssuers() {
+			return null;
+		}
 	}
 }
