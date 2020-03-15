@@ -109,9 +109,12 @@ public class SoapService {
 	@Value(value = "${spring.user.reqid}")
 	private String reqId;
 
+	@Value(value = "${spring.ordderid.file}")
+	private String orderIdFile;
+
 	@Scheduled(cron = "${spring.cron.time}")
 	public void callSoapService() throws Exception {
-		LOGGER.info("Calling SOAP for orderId {} at time {}", orderId, DATE_FORMAT.format(new Date()));
+		LOGGER.info("Calling SOAP for orderId {} at time {}", getOrderIdStringFromFile(), DATE_FORMAT.format(new Date()));
 		URL url9999 = new URL(null, service9999EndpointURL, new sun.net.www.protocol.https.Handler());
 		String xmlInput9999 = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"> <SOAP-ENV:Body>\r\n"
 				+ "<UserReq xmlns=\"http://www.fixprotocol.org/FIXML-5-0\" Password=\"" + password + "\"  RawData=\""
@@ -129,7 +132,8 @@ public class SoapService {
 			return;
 		}
 
-		URL url1074 = new URL(null, service1074EndpointURL.replace("token", token), new sun.net.www.protocol.https.Handler());
+		URL url1074 = new URL(null, service1074EndpointURL.replace("token", token),
+				new sun.net.www.protocol.https.Handler());
 		String xmlInput1074 = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:SOAP-ENC=\"http://schemas.xmlsoap.org/soap/encoding/\" xmlns:ns1=\"http://www.bvc.com.co/Services/Service1074\" xmlns:ns2=\"http://www.bvc.com.co/BUS\" xmlns:ns3=\"http://www.fixprotocol.org/FIXML-5-0\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n"
 				+ "   <SOAP-ENV:Body>\r\n" + "      <ns2:firm reTrx=\"false\" orderId=\"" + getOrderIdStringFromFile()
 				+ "\" id=\"" + firmId + "\" />\r\n" + "   </SOAP-ENV:Body>\r\n" + "</SOAP-ENV:Envelope>";
@@ -199,19 +203,20 @@ public class SoapService {
 		HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
 	}
 
-	private String getOrderIdStringFromFile() {
-		String orderIdString = "0";
+	private Integer getOrderIdStringFromFile() {
 		if (orderId == 0) {
-			File file = new File(getClass().getResource("/orderid.txt").getFile());
-			try (Scanner sc = new Scanner(file)) {
-				if (sc.hasNext()) {
-					orderIdString = sc.next();
+			File file = new File(orderIdFile);
+			if (file.exists()) {
+				try (Scanner sc = new Scanner(file)) {
+					if (sc.hasNext()) {
+						orderId = Integer.parseInt(sc.next());
+					}
+				} catch (FileNotFoundException e) {
+					LOGGER.error("Error occurred file opening the orderid file.", e);
 				}
-			} catch (FileNotFoundException e) {
-				LOGGER.error("Error occurred file opening the orderid file.", e);
 			}
 		}
-		return orderIdString;
+		return orderId;
 	}
 
 	private void processResults1074(Document document) {
@@ -289,11 +294,26 @@ public class SoapService {
 	}
 
 	private void writeOrderIdToFile() {
-		File file = new File(getClass().getResource("/orderid.txt").getFile());
-		try (FileWriter fw = new FileWriter(file)) {
-			fw.write(orderId);
+		File file = new File(orderIdFile);
+		try {
+			file.createNewFile();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		FileWriter fw = null;
+		try {
+			fw = new FileWriter(file);
+			LOGGER.info("Writing order id to file: " + orderId);
+			fw.write("" + orderId);
 		} catch (IOException e) {
-			LOGGER.error("Error occurred file writing the orderid to file.", e);
+			LOGGER.error("Error occurred file writing the orderid {} to file: {}", orderId, e);
+		} finally {
+			try {
+				fw.flush();
+				fw.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -342,9 +362,7 @@ public class SoapService {
 			}
 
 			);
-			InputSource inputSource = new InputSource(in);
-			System.out.println(inputSource.toString());
-			return builder.parse(inputSource);
+			return builder.parse(new InputSource(in));
 		} catch (ParserConfigurationException | IOException | SAXException e) {
 			throw e;
 		}
